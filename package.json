@@ -1,0 +1,66 @@
+{
+  "name": "fusion-server-2.0",
+  "version": "1.0.0",
+  "description": "Internal server for Fusion team",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "npm run lint",
+    "lint": "eslint . -c .eslintrc.js --ext .js,.jsx --ignore-path .gitignore",
+    "migrate": "sequelize db:migrate",
+    "migration:undo": "sequelize db:migrate:undo",
+    "migration:generate": "sequelize migration:generate"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint"
+    }
+  },
+  "author": "Alexey A.",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.2.0",
+    "eslint-plugin-import": "^2.18.0",
+    "nodemon": "^1.17.5"
+  },
+  "dependencies": {
+    "@slack/client": "^4.6.0",
+    "body-parser": "^1.18.3",
+    "change-case": "^3.0.2",
+    "cookie-parser": "^1.4.3",
+    "cron": "^1.4.1",
+    "email-validator": "^2.0.4",
+    "express": "^4.16.3",
+    "file-system": "^2.2.2",
+    "fs": "0.0.1-security",
+    "gm": "^1.23.1",
+    "handlebars": "^4.1.2",
+    "husky": "^3.0.0",
+    "jsonwebtoken": "^8.2.2",
+    "lodash.countby": "^4.6.0",
+    "lodash.difference": "^4.5.0",
+    "lodash.find": "^4.6.0",
+    "lodash.groupby": "^4.6.0",
+    "lodash.indexof": "^4.0.5",
+    "lodash.isequal": "^4.5.0",
+    "lodash.sortby": "^4.7.0",
+    "lodash.union": "^4.6.0",
+    "moment": "^2.22.2",
+    "multer": "^1.3.1",
+    "mysql2": "^1.6.1",
+    "nodemailer": "^5.1.1",
+    "path": "^0.12.7",
+    "pg": "^7.4.3",
+    "puppeteer": "^1.12.1",
+    "require-dir": "^1.0.0",
+    "sequelize": "^4.38.0",
+    "sequelize-cli": "^4.1.1",
+    "socket.io": "^2.2.0",
+    "turndown": "^5.0.3",
+    "util": "^0.11.1",
+    "web-push": "^3.3.3",
+    "winston": "^3.2.1",
+    "winston-transport": "^4.3.0"
+  }
+}
