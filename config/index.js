@@ -1,12 +1,13 @@
-const { mergeDeep } = require('../utils');
+const _defaultsDeep = require('lodash/defaultsDeep');
 
 const env = process.env.NODE_ENV || 'development';
 let localConfig;
 try {
   // eslint-disable-next-line global-require
   localConfig = require('./config.json');
+  console.log(`>>> \u001b[32m${'Config loaded from config.json'}\u001b[39m`);
 } catch (err) {
-  console.error('Local config not found', err);
+  console.error(`>>> \u001b[32m${'Local config not found'}\u001b[39m`, err);
 }
 
 let config = {
@@ -16,6 +17,7 @@ let config = {
     database: 'fusion_site',
     host: '127.0.0.1',
     dialect: 'postgres',
+    logging: false,
     slack: {
       conversationId: '',
       slackToken: '',
@@ -26,12 +28,15 @@ let config = {
       generalId: '',
       learningChannelId: '',
       slackMessages: {
-        newAnnouncement: [],
-      },
+        newAnnouncement: []
+      }
     },
     common: {
       jwtSecret: 'secret',
-      expiresIn: 10080,
+      accessTokenExpiresInSec: 172800,
+      refreshTokenExpiresInSec: 604800,
+      accessTokenExpiresIn: '2days',
+      refreshTokenExpiresIn: '7days',
       url: 'http://localhost:6800',
       siteAddress: 'http://localhost:3000',
       crmAddress: 'https://crm.fusion-team.com',
@@ -40,24 +45,24 @@ let config = {
       port: '6800',
       maxSizeImage: 3100000,
       qualityImage: 70,
-      quantityPicture: 5,
+      quantityPicture: 5
     },
     mail: {
       serviceEmail: 'fusion.team.llc@gmail.com',
       servicePassword: '',
-      service: 'gmail',
+      service: 'gmail'
     },
     externalAPI: {
       linkpreviewUrl: 'http://api.linkpreview.net/',
       linkpreviewApiKey: '',
       vapidPrivateKey: '',
       vapidPublicKey: '',
-      vapidMail: 'dev@fusion-team.com',
-    },
-  },
+      vapidMail: 'dev@fusion-team.com'
+    }
+  }
 };
 
 if (localConfig) {
-  config = mergeDeep(config, localConfig);
+  config = _defaultsDeep(localConfig, config);
 }
 module.exports = config[env];

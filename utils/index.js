@@ -1,4 +1,7 @@
+const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const _pick = require('lodash/pick');
 const config = require('../config');
 
 /**
@@ -41,6 +44,32 @@ exports.transporter = nodemailer.createTransport({
   tls: true,
   auth: {
     user: config.serviceEmail,
-    pass: config.servicePassword,
-  },
+    pass: config.servicePassword
+  }
 });
+
+/**
+ * create new token for user
+ * @param user - user model instance
+ */
+exports.createTokensPair = (user, fields = ['id', 'role', 'username']) => {
+  const data = _pick(user, fields);
+  const result = {
+    accessToken: jwt.sign(data, config.common.jwtSecret, {
+      expiresIn: config.common.accessTokenExpiresIn
+    }),
+    refreshToken: jwt.sign(data, config.common.jwtSecret, {
+      expiresIn: config.common.refreshTokenExpiresIn
+    }),
+    user: data
+  };
+  return result;
+};
+
+/**
+ * create hash for user password
+ */
+exports.hashPassword = password => crypto
+  .createHmac(config.common.hashType, config.common.hashKey)
+  .update(password)
+  .digest('hex');

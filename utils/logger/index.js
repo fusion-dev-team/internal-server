@@ -4,6 +4,9 @@ const { DBTransport, EmailTransport, consoleFormats } = require('./transports');
 const { format } = winston;
 const { combine, colorize, prettyPrint } = format;
 
+/**
+ * Logger class to draw, send and keep through whole app
+ */
 class Logger {
   constructor() {
     this.winston = winston.createLogger({
@@ -11,9 +14,9 @@ class Logger {
         new DBTransport({ level: 'error' }),
         new EmailTransport({ level: 'error' }),
         new winston.transports.Console({
-          format: combine(colorize(), prettyPrint(), consoleFormats),
-        }),
-      ],
+          format: combine(colorize(), prettyPrint(), consoleFormats)
+        })
+      ]
     });
   }
 
