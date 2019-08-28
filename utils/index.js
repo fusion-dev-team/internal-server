@@ -66,10 +66,14 @@ exports.createTokensPair = (user, fields = ['id', 'role', 'username']) => {
   return result;
 };
 
-/**
- * create hash for user password
- */
-exports.hashPassword = password => crypto
-  .createHmac(config.common.hashType, config.common.hashKey)
-  .update(password)
-  .digest('hex');
+exports.hash = {
+  generate(password) {
+    return crypto
+      .createHmac(config.common.hashType, config.common.hashKey)
+      .update(password)
+      .digest('hex');
+  },
+  compare(rawPassword, hashedPassword) {
+    return this.generate(rawPassword) === hashedPassword;
+  }
+};

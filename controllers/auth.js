@@ -6,7 +6,6 @@
 // const hash = require('../utils/hash');
 // const config = require('../config');
 // const { transporter } = require('../utils/transporter');
-const { validationResult } = require('express-validator');
 const db = require('../models');
 const utils = require('../utils');
 
@@ -102,32 +101,31 @@ const utils = require('../utils');
 //   }
 // };
 
-const singIn = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  const user = await db.user.findOne({
-    where: {
-      login: req.body.login
+const singIn = async (req, res, next) => {
+  try {
+    const user = await db.user.findOne({
+      where: {
+        login: req.body.login
+      }
+    });
+    if (!user) {
+      throw { status: 404, message: 'User not found' };
     }
-  });
-  if (!user) {
-    return res.status(404).json({ message: 'User not found' });
+    if (!utils.hash.compare(req.body.password, user.password)) {
+      throw { status: 401, message: 'Password is wrong' };
+    }
+    delete user.password;
+    const responsePayload = utils.createTokensPair(user);
+    return res.json(responsePayload);
+  } catch (err) {
+    next(err);
   }
-  delete user.password;
-  const responsePayload = utils.createTokensPair(user);
-  return res.json(responsePayload);
 };
 
 const singUp = async (req, res, next) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw { errors: errors.array(), message: 'Wrong data', status: 400 };
-    }
     const userPayload = req.body;
-    userPayload.password = utils.hashPassword(userPayload.password);
+    userPayload.password = utils.hash.generate(userPayload.password);
 
     // eslint-disable-next-line prefer-const
     let [user, created] = await db.user.findOrCreate({
@@ -161,6 +159,6 @@ module.exports = {
   // authorize,
   singIn,
   singUp
-  // passwordRestore,
+  // passwordRestore
   // passwordReset,
 };
