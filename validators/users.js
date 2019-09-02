@@ -10,9 +10,10 @@ module.exports = {
       .isInt({ gte: 0 })
   ],
   update: [
-    body('login', 'Login is missing').exists(),
     body('email', 'Email is missing').exists(),
     body('email', 'Email has wrong format').isEmail(),
-    body('password', 'Password is missing').exists()
+    body('DoB', 'Wrong DoB').isRFC3339(),
+    body('firstName').exists(),
+    body('lastName').exists()
   ]
 };

@@ -40,11 +40,11 @@ exports.mergeDeep = mergeDeep;
  * email sender transport
  */
 exports.transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: config.mail.service,
   tls: true,
   auth: {
-    user: config.serviceEmail,
-    pass: config.servicePassword
+    user: config.mail.serviceEmail,
+    pass: config.mail.servicePassword
   }
 });
 
@@ -76,4 +76,11 @@ exports.hash = {
   compare(rawPassword, hashedPassword) {
     return this.generate(rawPassword) === hashedPassword;
   }
+};
+
+exports.parseStringToArray = (string) => {
+  if (!string) {
+    return [];
+  }
+  return string.split(',');
 };

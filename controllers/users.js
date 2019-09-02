@@ -1,4 +1,7 @@
+const _pick = require('lodash/pick');
 const db = require('../models');
+const utils = require('../utils');
+const { updateUserConversationId } = require('../utils/slackBot/usersData');
 
 const { Op } = db.Sequelize;
 
@@ -18,9 +21,51 @@ const getUsers = async (req, res, next) => {
 
 const editUser = async (req, res, next) => {
   try {
-    return res.json({});
-  } catch (err) {
-    next(err);
+    // If slack_name was changed
+    if (req.body.slack_name && req.body.slack_name !== req.userData.slack_name) {
+      const slack = await updateUserConversationId(req, res);
+      if (!slack) {
+        throw { status: 400, message: 'Not found slack name' };
+      }
+    }
+
+    const payload = _pick(req.body, [
+      'firstName',
+      'lastName',
+      'info',
+      'email',
+      'DoB',
+      'phone',
+      'slack_name',
+      'repo'
+    ]);
+
+    payload.repo = utils.parseStringToArray(payload.repo);
+
+    let user = await db.user.update(payload, {
+      where: {
+        [Op.or]: [{ login: req.params.login }, { id: req.params.id }]
+      },
+      individualHooks: true
+    });
+
+    user = user[1][0];
+    user = _pick(user.toJSON(), [
+      'firstName',
+      'lastName',
+      'info',
+      'email',
+      'DoB',
+      'phone',
+      'slack_name',
+      'repo'
+    ]);
+    return res.json({
+      message: 'User updated',
+      user
+    });
+  } catch (error) {
+    next(error);
   }
 };
 

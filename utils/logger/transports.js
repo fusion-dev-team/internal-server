@@ -7,9 +7,9 @@ const { printf } = format;
 
 // TODO: uncomment when all models be ready
 
-// const { error } = require('../../models');
-// const transporter = require('./index');
-// const { serviceEmail } = require('../../config');
+const db = require('../../models');
+const utils = require('../index');
+const config = require('../../config');
 
 /**
  * Transport for logger what writes to DB each critical error
@@ -23,9 +23,9 @@ class DBTransport extends Transport {
   log(info, callback) {
     // TODO: uncomment when all models be ready
 
-    // error.create(info.message).then(() => callback());
-    console.log('Log to DB about error');
-    callback();
+    db.error.create(info.message).then(() => callback());
+    // console.log('Log to DB about error');
+    // callback();
   }
 }
 
@@ -41,19 +41,21 @@ class EmailTransport extends Transport {
   log(info, callback) {
     // TODO: uncomment when all models be ready
 
-    // const { error: errorText, routeName = 'Route path is empty', filename } = info.message;
-    // const mailOptions = {
-    //   from: serviceEmail,
-    //   to: serviceEmail,
-    //   subject: `Error file: ${filename}`,
-    //   html: `<p> Route error: ${routeName}</p><p>Message: ${errorText}</p>`,
-    // };
-    // transporter.sendMail(mailOptions, (err) => {
-    //   console.error('EmailTransport error:', err);
-    //   callback();
-    // });
-    console.log('Email info about error');
-    callback();
+    const { text: errorText, routeName = 'Route path is empty', filename } = info.message;
+    const mailOptions = {
+      from: config.mail.serviceEmail,
+      to: config.mail.serviceEmail,
+      subject: `Error file: ${filename}`,
+      html: `<h2> Route error: ${routeName}</h2><p>${errorText}</p>`
+    };
+    utils.transporter.sendMail(mailOptions, (err) => {
+      if (err) {
+        console.error('Logger EmailTransport error:', err);
+      }
+      callback();
+    });
+    // console.log('Email info about error');
+    // callback();
   }
 }
 

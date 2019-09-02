@@ -15,6 +15,7 @@ module.exports = (router) => {
   // router.get('/:login', controller.getUser);
   // router.get('/:id', controller.getUser);
   router.put('/:id', validators('users.update'), controller.editUser);
+  // router.put('/:id', controller.editUser);
   //   // router.put('/avatar/:id', upload.single('avatarIMG'), controller.newAvatar);
   //   // router.put('/adminChange/:id', isAdmin, controller.adminChange);
   //   router.delete('/:id', isAdmin, controller.deleteUser);
