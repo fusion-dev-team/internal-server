@@ -19,6 +19,25 @@ const getUsers = async (req, res, next) => {
   }
 };
 
+const getUser = async (req, res, next) => {
+  try {
+    const { id: userId } = req.params;
+    const user = await db.user.findOne({
+      where: { id: userId },
+      attributes: {
+        exclude: ['password', 'updatedAt', 'resetPasswordToken', 'resetPasswordExpires']
+      }
+    });
+    if (!user) {
+      throw { status: 404, message: 'User not found' };
+    }
+
+    return res.json({ user });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const editUser = async (req, res, next) => {
   try {
     // If slack_name was changed
@@ -102,5 +121,6 @@ const makeQueryObject = (query) => {
 };
 module.exports = {
   getUsers,
-  editUser
+  editUser,
+  getUser
 };

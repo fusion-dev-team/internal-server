@@ -13,7 +13,7 @@ module.exports = (router) => {
 
   router.get('/', validators('users.getAll'), controller.getUsers);
   // router.get('/:login', controller.getUser);
-  // router.get('/:id', controller.getUser);
+  router.get('/:id', controller.getUser);
   router.put('/:id', validators('users.update'), controller.editUser);
   // router.put('/:id', controller.editUser);
   //   // router.put('/avatar/:id', upload.single('avatarIMG'), controller.newAvatar);
