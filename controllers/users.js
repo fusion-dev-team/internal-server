@@ -1,16 +1,41 @@
 const _pick = require('lodash/pick');
+const fs = require('fs');
+const gm = require('gm').subClass({ imageMagick: true });
 const db = require('../models');
 const utils = require('../utils');
 const { updateUserConversationId } = require('../utils/slackBot/usersData');
 
 const { Op } = db.Sequelize;
 
+const USER_FIELDS_REGULAR = [
+  'firstName',
+  'lastName',
+  'info',
+  'email',
+  'DoB',
+  'avatar',
+  'phone',
+  'slack_name',
+  'repo'
+];
+
+const USER_FIELDS_ADMIN = ['role', 'status'];
+
+const USER_FIELDS_QUERY_EXCLUDES = [
+  'password',
+  'updatedAt',
+  'resetPasswordToken',
+  'resetPasswordExpires',
+  'slack_conversational_id',
+  'slack_conversational_crm_id'
+];
+
 const getUsers = async (req, res, next) => {
   try {
     const users = await db.user.findAll({
       ...makeQueryObject(req.query),
       attributes: {
-        exclude: ['password', 'createdAt', 'updatedAt']
+        exclude: USER_FIELDS_QUERY_EXCLUDES
       }
     });
     return res.json({ users });
@@ -25,7 +50,7 @@ const getUser = async (req, res, next) => {
     const user = await db.user.findOne({
       where: { id: userId },
       attributes: {
-        exclude: ['password', 'updatedAt', 'resetPasswordToken', 'resetPasswordExpires']
+        exclude: USER_FIELDS_QUERY_EXCLUDES
       }
     });
     if (!user) {
@@ -41,50 +66,94 @@ const getUser = async (req, res, next) => {
 const editUser = async (req, res, next) => {
   try {
     // If slack_name was changed
-    if (req.body.slack_name && req.body.slack_name !== req.userData.slack_name) {
+    if (req.body.slack_name && req.body.slack_name !== req.user.slack_name) {
       const slack = await updateUserConversationId(req, res);
       if (!slack) {
         throw { status: 400, message: 'Not found slack name' };
       }
     }
-
-    const payload = _pick(req.body, [
-      'firstName',
-      'lastName',
-      'info',
-      'email',
-      'DoB',
-      'phone',
-      'slack_name',
-      'repo'
-    ]);
+    const fieldList = USER_FIELDS_REGULAR;
+    if (req.user.role === 'admin') {
+      fieldList.push(...USER_FIELDS_ADMIN);
+    }
+    const payload = _pick(req.body, fieldList);
 
     payload.repo = utils.parseStringToArray(payload.repo);
 
-    let user = await db.user.update(payload, {
+    await db.user.update(payload, {
       where: {
         [Op.or]: [{ login: req.params.login }, { id: req.params.id }]
       },
       individualHooks: true
     });
 
-    user = user[1][0];
-    user = _pick(user.toJSON(), [
-      'firstName',
-      'lastName',
-      'info',
-      'email',
-      'DoB',
-      'phone',
-      'slack_name',
-      'repo'
-    ]);
     return res.json({
-      message: 'User updated',
-      user
+      message: 'User updated'
     });
   } catch (error) {
     next(error);
+  }
+};
+
+const updateAvatar = (req, res, next) => {
+  try {
+    if (!req.file || !req.file.filename) {
+      throw { status: 400, message: 'Avatar file if wrong' };
+    }
+    const avatarPath = `public/uploads/${req.file.filename}`;
+    const { id } = req.params;
+    let oldPath = '';
+    let thumbnailPath = '';
+    if (req.user.avatar) {
+      oldPath = `public/uploads/${req.user.avatar.split('/').splice(-1, 1)}`;
+      thumbnailPath = `${oldPath}_thumbnail`;
+    } else {
+      thumbnailPath = `${avatarPath}_thumbnail`;
+    }
+
+    if (fs.existsSync(oldPath)) {
+      fs.unlinkSync(oldPath);
+    }
+    if (fs.existsSync(thumbnailPath)) {
+      fs.unlinkSync(thumbnailPath);
+    }
+
+    gm(avatarPath)
+      .quality(20)
+      .write(avatarPath, (err) => {
+        if (err) {
+          return next(err);
+        }
+        gm(avatarPath)
+          .resize(250, 250)
+          .write(`${avatarPath}_thumbnail`, async (error) => {
+            if (error) {
+              return next(error);
+            }
+            try {
+              await db.user.update(
+                {
+                  avatar: `/${avatarPath}`,
+                  avatarThumbnail: `/${avatarPath}_thumbnail`
+                },
+                {
+                  where: { id },
+                  individualHooks: true
+                }
+              );
+
+              return res.json({
+                message: 'avatar was updated',
+                avatar: `/${avatarPath}`,
+                avatarThumbnail: `/${avatarPath}_thumbnail`
+              });
+            } catch (updateError) {
+              next(updateError);
+            }
+          });
+      });
+  } catch (error) {
+    return next(error);
   }
 };
 
@@ -122,5 +191,6 @@ const makeQueryObject = (query) => {
 module.exports = {
   getUsers,
   editUser,
-  getUser
+  getUser,
+  updateAvatar
 };
