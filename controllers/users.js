@@ -1,7 +1,9 @@
 const _pick = require('lodash/pick');
 const fs = require('fs');
 const gm = require('gm').subClass({ imageMagick: true });
-const db = require('../models');
+const Sequelize = require('sequelize');
+const db = require('../db/models');
+const userService = require('../db/services/users');
 const utils = require('../utils');
 const { updateUserConversationId } = require('../utils/slackBot/usersData');
 const {
@@ -10,11 +12,11 @@ const {
   USER_FIELDS_REGULAR
 } = require('../utils/contants');
 
-const { Op } = db.Sequelize;
+const { Op } = Sequelize;
 
 const getUsers = async (req, res, next) => {
   try {
-    const users = await db.user.findAll({
+    const users = await userService.findAllUsers({
       ...makeQueryObject(req.query),
       attributes: {
         exclude: USER_FIELDS_QUERY_EXCLUDES

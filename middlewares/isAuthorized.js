@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const db = require('../models/index');
+const db = require('../db/models/index');
 const config = require('../config/index');
 
 module.exports = async (req, res, next) => {

@@ -1,12 +1,16 @@
 const { WebClient } = require('@slack/client');
 const config = require('../../config');
-const db = require('../../models');
+const db = require('../../db/models');
 
 const { Op } = db.Sequelize;
 
 const webClient = new WebClient(config.slackToken);
 const webClientCRM = new WebClient(config.slackTokenCRM);
 
+/**
+ *
+ * @param {*} req
+ */
 async function updateUserConversationId(req) {
   try {
     const usersList = await webClient.apiCall('users.list');
@@ -26,6 +30,9 @@ async function updateUserConversationId(req) {
   }
 }
 
+/**
+ *
+ */
 async function updateAllUsersConversationId() {
   const options = {
     where: {
@@ -65,6 +72,12 @@ async function updateAllUsersConversationId() {
   return true;
 }
 
+/**
+ *
+ * @param {*} userId
+ * @param {*} login
+ * @param {*} slack_name
+ */
 async function updateUser(userId, login, slack_name) {
   try {
     if (userId === null) {

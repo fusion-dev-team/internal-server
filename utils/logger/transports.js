@@ -7,7 +7,7 @@ const { printf } = format;
 
 // TODO: uncomment when all models be ready
 
-const db = require('../../models');
+const db = require('../../db/models');
 const utils = require('../index');
 const config = require('../../config');
 
