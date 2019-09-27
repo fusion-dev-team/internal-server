@@ -10,5 +10,6 @@ module.exports = {
     check('email', 'Email is missing').exists(),
     check('email', 'Email has wrong format').isEmail(),
     check('password', 'Password is missing').exists()
-  ]
+  ],
+  refreshToken: [check('refreshToken', 'refreshToken is missing').exists()]
 };

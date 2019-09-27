@@ -4,31 +4,13 @@ const gm = require('gm').subClass({ imageMagick: true });
 const db = require('../models');
 const utils = require('../utils');
 const { updateUserConversationId } = require('../utils/slackBot/usersData');
+const {
+  USER_FIELDS_ADMIN,
+  USER_FIELDS_QUERY_EXCLUDES,
+  USER_FIELDS_REGULAR
+} = require('../utils/contants');
 
 const { Op } = db.Sequelize;
-
-const USER_FIELDS_REGULAR = [
-  'firstName',
-  'lastName',
-  'info',
-  'email',
-  'DoB',
-  'avatar',
-  'phone',
-  'slack_name',
-  'repo'
-];
-
-const USER_FIELDS_ADMIN = ['role', 'status'];
-
-const USER_FIELDS_QUERY_EXCLUDES = [
-  'password',
-  'updatedAt',
-  'resetPasswordToken',
-  'resetPasswordExpires',
-  'slack_conversational_id',
-  'slack_conversational_crm_id'
-];
 
 const getUsers = async (req, res, next) => {
   try {

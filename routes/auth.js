@@ -8,6 +8,7 @@ module.exports = (router) => {
   router.post('/sign-in', validators('auth.signin'), controller.singIn);
   router.post('/sign-up', validators('auth.signup'), controller.singUp);
   // router.post('/authorize', controller.authorize);
-  // router.post('/password_restore', controller.passwordRestore);
-  // router.post('/reset/:token', controller.passwordReset);
+  // router.post('/password-restore', controller.passwordRestore);
+  // router.post('/password-restore/:token', controller.passwordReset);
+  router.post('/token-refresh', validators('auth.refreshToken'), controller.tokenRefresh);
 };

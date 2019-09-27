@@ -1,11 +1,12 @@
-// const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
 // const crypto = require('crypto');
 // const moment = require('moment');
 // const _ = require('lodash');
 // const db = require('../models/index');
 // const hash = require('../utils/hash');
-// const config = require('../config');
 // const { transporter } = require('../utils/transporter');
+const { USER_FIELDS_TOKEN } = require('../utils/contants');
 const db = require('../models');
 const utils = require('../utils');
 
@@ -114,8 +115,7 @@ const singIn = async (req, res, next) => {
     if (!utils.hash.compare(req.body.password, user.password)) {
       throw { status: 401, message: 'Password is wrong' };
     }
-    delete user.password;
-    const responsePayload = utils.createTokensPair(user);
+    const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
     return res.json(responsePayload);
   } catch (err) {
     next(err);
@@ -145,20 +145,31 @@ const singUp = async (req, res, next) => {
       throw { message: 'User with same credentials already exists', status: 400 };
     }
     user = user.toJSON();
-    delete user.password;
-    delete user.updatedAt;
 
-    const responsePayload = utils.createTokensPair(user);
+    const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
     return res.status(201).json(responsePayload);
   } catch (err) {
     return next(err);
   }
 };
 
+const tokenRefresh = async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body;
+    const decoded = jwt.verify(refreshToken, config.common.jwtSecret);
+    const user = await db.user.findOne({ where: { id: decoded.id } });
+    const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
+    return res.json(responsePayload);
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   // authorize,
   singIn,
-  singUp
+  singUp,
+  tokenRefresh
   // passwordRestore
   // passwordReset,
 };
