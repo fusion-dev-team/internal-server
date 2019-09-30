@@ -7,7 +7,7 @@ const config = require('../config');
 // const hash = require('../utils/hash');
 const { transporter } = require('../utils');
 const { USER_FIELDS_TOKEN } = require('../utils/contants');
-const db = require('../db/models');
+const userService = require('../db/services/users');
 const utils = require('../utils');
 
 // const authorize = async (req, res) => {
@@ -30,11 +30,8 @@ const utils = require('../utils');
 
 const passwordRestore = async (req, res, next) => {
   try {
-    const user = await db.user.findOne({
-      where: { email: req.body.email.trim() },
-      attributes: {
-        exclude: ['password', 'updatedAt']
-      }
+    const user = await userService.findOneUser({
+      where: { email: req.body.email.trim() }
     });
     if (!user) {
       throw { status: 404, message: 'User not found' };
@@ -78,15 +75,12 @@ const passwordReset = async (req, res) => {
       .send();
   }
   try {
-    const user = await db.user.findOne({
+    const user = await userService.findOneUser({
       where: {
         resetPasswordToken: token,
         resetPasswordExpires: {
           $gt: new Date()
         }
-      },
-      attributes: {
-        exclude: ['password', 'updatedAt']
       }
     });
     if (!user) {
@@ -104,7 +98,7 @@ const passwordReset = async (req, res) => {
 
 const singIn = async (req, res, next) => {
   try {
-    const user = await db.user.findOne({
+    const user = await userService.findOneUser({
       where: {
         login: req.body.login
       }
@@ -128,7 +122,7 @@ const singUp = async (req, res, next) => {
     userPayload.password = utils.hash.generate(userPayload.password);
 
     // eslint-disable-next-line prefer-const
-    let [user, created] = await db.user.findOrCreate({
+    let [user, created] = await userService.findOrCreate({
       where: {
         $or: [
           {
@@ -157,7 +151,7 @@ const tokenRefresh = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
     const decoded = jwt.verify(refreshToken, config.common.jwtSecret);
-    const user = await db.user.findOne({ where: { id: decoded.id } });
+    const user = await userService.findOneUser({ where: { id: decoded.id } });
     const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
     return res.json(responsePayload);
   } catch (error) {

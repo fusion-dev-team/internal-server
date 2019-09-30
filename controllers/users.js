@@ -2,7 +2,6 @@ const _pick = require('lodash/pick');
 const fs = require('fs');
 const gm = require('gm').subClass({ imageMagick: true });
 const Sequelize = require('sequelize');
-const db = require('../db/models');
 const userService = require('../db/services/users');
 const utils = require('../utils');
 const { updateUserConversationId } = require('../utils/slackBot/usersData');
@@ -31,7 +30,7 @@ const getUsers = async (req, res, next) => {
 const getUser = async (req, res, next) => {
   try {
     const { id: userId } = req.params;
-    const user = await db.user.findOne({
+    const user = await userService.findOneUser({
       where: { id: userId },
       attributes: {
         exclude: USER_FIELDS_QUERY_EXCLUDES
@@ -64,7 +63,7 @@ const editUser = async (req, res, next) => {
 
     payload.repo = utils.parseStringToArray(payload.repo);
 
-    await db.user.update(payload, {
+    await userService.updateUser(payload, {
       where: {
         [Op.or]: [{ login: req.params.login }, { id: req.params.id }]
       },
@@ -115,7 +114,7 @@ const updateAvatar = (req, res, next) => {
               return next(error);
             }
             try {
-              await db.user.update(
+              await userService.update(
                 {
                   avatar: `/${avatarPath}`,
                   avatarThumbnail: `/${avatarPath}_thumbnail`
@@ -144,6 +143,7 @@ const updateAvatar = (req, res, next) => {
 /**
  *
  * @param {object} query - request.query object
+ * returns query object for user model
  */
 const makeQueryObject = (query) => {
   const queryObject = {
