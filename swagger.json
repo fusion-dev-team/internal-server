@@ -1,0 +1,505 @@
+{
+  "info": {
+    "title": "fusion-swagger",
+    "version": "2.0.0",
+    "description": "internal-server swagger"
+  },
+  "openapi": "3.0.0",
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "authorization"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "auth",
+      "description": "auth"
+    },
+    {
+      "name": "users",
+      "description": "users"
+    }
+  ],
+  "paths": {
+    "/api/auth/password-restore": {
+      "post": {
+        "summary": "Request password restore",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "email have been sent to the email"
+          },
+          "403": {
+            "description": "Error message, probably wrong request"
+          },
+          "404": {
+            "description": "error no such user"
+          }
+        }
+      }
+    },
+    "/api/auth/reset/{token}": {
+      "post": {
+        "summary": "reset password",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "schema": {
+              "type": "string"
+            },
+            "description": "token generated onRestore"
+          },
+          {
+            "name": "reset pass object"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newPass": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "password have been changed"
+          },
+          "400": {
+            "description": "no token"
+          },
+          "404": {
+            "description": "err message. Probably no such user"
+          }
+        }
+      }
+    },
+    "/api/auth/sign-in": {
+      "post": {
+        "summary": "Sign in",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "login": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "password have been changed"
+          },
+          "500": {
+            "description": "validation errors"
+          }
+        }
+      }
+    },
+    "/api/auth/sign-up": {
+      "post": {
+        "summary": "register",
+        "produces": [
+          "application/json"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "login": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "password have been changed"
+          }
+        }
+      }
+    },
+    "/api/auth/token-refresh": {
+      "post": {
+        "summary": "Request token refresh",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "email have been sent to the email"
+          },
+          "403": {
+            "description": "Error message, probably wrong request"
+          },
+          "404": {
+            "description": "error no such user"
+          }
+        }
+      }
+    },
+    "/api/users/": {
+      "get": {
+        "summary": "GET users lsit",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "name",
+            "schema": {
+              "type": "string",
+              "example": "Alexey"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "example": 10
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "example": "active"
+            }
+          },
+          {
+            "in": "query",
+            "name": "notRole",
+            "schema": {
+              "type": "string",
+              "example": "student",
+              "description": "excluding item with this role"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "sorting parameters",
+              "example": "['id', 'ASC']"
+            }
+          }
+        ],
+        "tags": [
+          "users"
+        ],
+        "responses": {
+          "200": {
+            "description": "Filtered and ordered list of users"
+          },
+          "500": {
+            "description": "Error message. Probably invalid request data"
+          }
+        }
+      }
+    },
+    "/api/users/{id}": {
+      "get": {
+        "summary": "GET user by id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "description": "user id"
+          }
+        ],
+        "tags": [
+          "users"
+        ],
+        "responses": {
+          "200": {
+            "description": "user"
+          }
+        }
+      },
+      "put": {
+        "summary": "edit user record",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "schema": {
+              "type": "string"
+            },
+            "description": "user id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/UserPutModel"
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ],
+        "responses": {
+          "200": {
+            "description": "user updated"
+          },
+          "500": {
+            "description": "error message"
+          }
+        }
+      }
+    },
+    "/api/users/{id}/avatar/": {
+      "put": {
+        "summary": "Update user avatar",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "description": "user id",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "avatar": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "file"
+                  }
+                }
+              },
+              "encoding": {
+                "avatar": {
+                  "contentType": "image/png, image/jpeg"
+                }
+              }
+            }
+          },
+          "description": "new project object"
+        },
+        "tags": [
+          "users"
+        ],
+        "responses": {
+          "200": {
+            "description": "project created"
+          },
+          "500": {
+            "description": "err message. probably invalid request body"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "UserModel": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "login": {
+          "type": "string"
+        },
+        "info": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        },
+        "DoB": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "slack_name": {
+          "type": "string"
+        },
+        "slack_conversational_id": {
+          "type": "string"
+        },
+        "slack_conversational_crm_id": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "student",
+            "user",
+            "sales",
+            "admin"
+          ]
+        },
+        "repo": {
+          "type": "string"
+        },
+        "resetPasswordExpires": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resetPasswordToken": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "registered",
+            "active",
+            "disabled"
+          ]
+        }
+      }
+    },
+    "UserPutModel": {
+      "type": "object",
+      "properties": {
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "info": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "required": true
+        },
+        "DoB": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "slack_name": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "student",
+            "user",
+            "sales",
+            "admin"
+          ],
+          "description": "only for admin"
+        },
+        "repo": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "registered",
+            "active",
+            "disabled"
+          ],
+          "description": "only for admin"
+        }
+      }
+    }
+  }
+}

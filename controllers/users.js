@@ -13,6 +13,131 @@ const {
 
 const { Op } = Sequelize;
 
+/**
+ * @swagger
+ * definitions:
+ *   UserModel:
+ *     type: object
+ *     properties:
+ *       firstName:
+ *         type: string
+ *       lastName:
+ *         type: string
+ *       login:
+ *         type: string
+ *       info:
+ *         type: string
+ *       email:
+ *         type: string
+ *       password:
+ *         type: string
+ *       DoB:
+ *         type: string
+ *         format: date-time
+ *       phone:
+ *         type: string
+ *       slack_name:
+ *         type: string
+ *       slack_conversational_id:
+ *         type: string
+ *       slack_conversational_crm_id:
+ *         type: string
+ *       role:
+ *         type: string
+ *         enum: ['student', 'user', 'sales', 'admin']
+ *       repo:
+ *         type: string
+ *       resetPasswordExpires:
+ *         type: string
+ *         format: date-time
+ *       resetPasswordToken:
+ *         type: string
+ *       status:
+ *         type: string
+ *         enum: ['registered', 'active', 'disabled']
+ */
+
+/**
+ * @swagger
+ * definitions:
+ *   UserPutModel:
+ *     type: object
+ *     properties:
+ *       firstName:
+ *         type: string
+ *       lastName:
+ *         type: string
+ *       info:
+ *         type: string
+ *       email:
+ *         type: string
+ *         required: true
+ *       DoB:
+ *         type: string
+ *         format: date-time
+ *       phone:
+ *         type: string
+ *       slack_name:
+ *         type: string
+ *       role:
+ *         type: string
+ *         enum: ['student', 'user', 'sales', 'admin']
+ *         description: only for admin
+ *       repo:
+ *         type: string
+ *       status:
+ *         type: string
+ *         enum: ['registered', 'active', 'disabled']
+ *         description: only for admin
+ */
+
+/**
+ * @swagger
+ *
+ * /api/users/:
+ *   get:
+ *     summary: GET users lsit
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - in: query
+ *         name: name
+ *         schema:
+ *           type: string
+ *           example: "Alexey"
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           example: 10
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           example: "active"
+ *       - in: query
+ *         name: notRole
+ *         schema:
+ *           type: string
+ *           example: "student"
+ *           description: excluding item with this role
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: array
+ *           items:
+ *             type: "string"
+ *           description: sorting parameters
+ *           example: "["id", "ASC"]"
+ *     tags:
+ *       - users
+ *     responses:
+ *       200:
+ *         description: Filtered and ordered list of users
+ *       500:
+ *         description: Error message. Probably invalid request data
+ *
+ */
 const getUsers = async (req, res, next) => {
   try {
     const users = await userService.findAllUsers({
@@ -23,10 +148,28 @@ const getUsers = async (req, res, next) => {
     });
     return res.json({ users });
   } catch (err) {
-    next(err);
+    next({ ...err, filename: __dirname });
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/users/{id}:
+ *   get:
+ *     summary: GET user by id
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         description: user id
+ *     tags:
+ *       - users
+ *     responses:
+ *       200:
+ *         description: user
+ */
 const getUser = async (req, res, next) => {
   try {
     const { id: userId } = req.params;
@@ -46,6 +189,33 @@ const getUser = async (req, res, next) => {
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/users/{id}:
+ *   put:
+ *     summary: edit user record
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         description: user id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/definitions/UserPutModel'
+ *     tags:
+ *      - users
+ *     responses:
+ *       200:
+ *         description: user updated
+ *       500:
+ *         description: error message
+ *
+ */
 const editUser = async (req, res, next) => {
   try {
     // If slack_name was changed
@@ -78,6 +248,41 @@ const editUser = async (req, res, next) => {
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/users/{id}/avatar/:
+ *   put:
+ *     summary: Update user avatar
+ *     parameters:
+ *      - in: path
+ *        name: id
+ *        description: user id
+ *        schema:
+ *          type: number
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *                 description: file
+ *           encoding:
+ *             avatar:
+ *               contentType: image/png, image/jpeg
+ *       description: new project object
+ *     tags:
+ *       - users
+ *     responses:
+ *       200:
+ *         description: project created
+ *       500:
+ *         description: err message. probably invalid request body
+ */
 const updateAvatar = (req, res, next) => {
   try {
     if (!req.file || !req.file.filename) {
@@ -114,7 +319,7 @@ const updateAvatar = (req, res, next) => {
               return next(error);
             }
             try {
-              await userService.update(
+              await userService.updateUser(
                 {
                   avatar: `/${avatarPath}`,
                   avatarThumbnail: `/${avatarPath}_thumbnail`
@@ -164,7 +369,11 @@ const makeQueryObject = (query) => {
     queryObject.where.status = query.status;
   }
   if (query.sort) {
-    queryObject.order = JSON.parse(query.sort);
+    if (typeof query.sort === 'string') {
+      queryObject.order = [JSON.parse(query.sort)];
+    } else if (Array.isArray(query.sort)) {
+      queryObject.order = [query.sort];
+    }
   }
 
   if (query.limit) {

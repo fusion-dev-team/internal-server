@@ -1,33 +1,35 @@
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
-// const crypto = require('crypto');
-// const _ = require('lodash');
-// const db = require('../models/index');
-// const hash = require('../utils/hash');
 const { transporter } = require('../utils');
 const { USER_FIELDS_TOKEN } = require('../utils/contants');
 const userService = require('../db/services/users');
 const utils = require('../utils');
 
-// const authorize = async (req, res) => {
-//   try {
-//     const decoded = jwt.verify(req.body.cookie, req.secret);
-//     const user = await db.user.findOne({
-//       where: { login: decoded.login },
-//       attributes: {
-//         exclude: ['password', 'updatedAt'],
-//       },
-//     });
-//     if (!user) {
-//       return res.status(404).send(false);
-//     }
-//     return res.status(200).send(user.get());
-//   } catch (err) {
-//     return res.status(403).send(err);
-//   }
-// };
-
+/**
+ * @swagger
+ *
+ * /api/auth/password-restore:
+ *   post:
+ *     summary: Request password restore
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                type: string
+ *     tags:
+ *       - auth
+ *     responses:
+ *       200:
+ *         description: email have been sent to the email
+ *       404:
+ *         description: error no such user
+ *       403:
+ *         description: Error message, probably wrong request
+ */
 const passwordRestore = async (req, res, next) => {
   try {
     const user = await userService.findOneUser({
@@ -65,6 +67,37 @@ const passwordRestore = async (req, res, next) => {
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/auth/reset/{token}:
+ *   post:
+ *     summary: reset password
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         schema:
+ *           type: string
+ *         description: token generated onRestore
+ *       - name: reset pass object
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               newPass:
+ *                type: string
+ *     tags:
+ *       - auth
+ *     responses:
+ *       200:
+ *         description: password have been changed
+ *       400:
+ *         description: no token
+ *       404:
+ *         description: err message. Probably no such user
+ */
 const passwordReset = async (req, res) => {
   const { token } = req.params;
   // const { newPass } = req.body;
@@ -96,6 +129,30 @@ const passwordReset = async (req, res) => {
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/auth/sign-in:
+ *   post:
+ *     summary: Sign in
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               login:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     tags:
+ *       - auth
+ *     responses:
+ *       200:
+ *         description: password have been changed
+ *       500:
+ *         description: validation errors
+ */
 const singIn = async (req, res, next) => {
   try {
     const user = await userService.findOneUser({
@@ -116,6 +173,32 @@ const singIn = async (req, res, next) => {
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/auth/sign-up:
+ *   post:
+ *     summary: register
+ *     produces:
+ *       - application/json
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                type: string
+ *               login:
+ *                type: string
+ *               password:
+ *                type: string
+ *     tags:
+ *       - auth
+ *     responses:
+ *       200:
+ *         description: password have been changed
+ */
 const singUp = async (req, res, next) => {
   try {
     const userPayload = req.body;
@@ -147,6 +230,30 @@ const singUp = async (req, res, next) => {
   }
 };
 
+/**
+ * @swagger
+ *
+ * /api/auth/token-refresh:
+ *   post:
+ *     summary: Request token refresh
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                type: string
+ *     tags:
+ *       - auth
+ *     responses:
+ *       200:
+ *         description: email have been sent to the email
+ *       404:
+ *         description: error no such user
+ *       403:
+ *         description: Error message, probably wrong request
+ */
 const tokenRefresh = async (req, res, next) => {
   try {
     const { refreshToken } = req.body;
