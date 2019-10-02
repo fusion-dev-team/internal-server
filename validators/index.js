@@ -1,7 +1,10 @@
 /* eslint-disable global-require */
 /* eslint-disable import/no-dynamic-require */
 const _get = require('lodash/get');
-const validatorObjects = require('require-dir')();
+// const validatorObjects = require('require-dir')('./', { extensions: ['.js'] });
+const requireDirectory = require('require-directory');
+
+const validatorObjects = requireDirectory(module, './');
 const { validationResult } = require('express-validator');
 
 const validators = Object.keys(validatorObjects).reduce((acc, filename) => {
@@ -15,6 +18,7 @@ const validators = Object.keys(validatorObjects).reduce((acc, filename) => {
  */
 const chooseAndValidate = type => async (req, res, next) => {
   try {
+    // return next();
     await Promise.all(_get(validators, type).map(validation => validation.run(req)));
 
     const errors = validationResult(req);

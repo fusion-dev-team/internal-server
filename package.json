@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon server.js",
     "prestart": "node ./node_modules/.bin/swagger-jsdoc -d ./utils/swaggerInit.js",
-    "test": "npm run lint",
+    "test": "npm run lint && jest",
     "lint": "eslint . -c .eslintrc.js --ext .js,.jsx --ignore-path .gitignore",
     "migrate": "sequelize db:migrate",
     "migration:undo": "sequelize db:migrate:undo",
@@ -17,13 +17,21 @@
       "pre-commit": "npm run lint"
     }
   },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  },
   "author": "Alexey A.",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.18.0",
-    "nodemon": "^1.17.5"
+    "jest": "^24.9.0",
+    "nodemon": "^1.17.5",
+    "supertest": "^4.0.2"
   },
   "dependencies": {
     "@slack/client": "^4.6.0",
@@ -57,7 +65,7 @@
     "path": "^0.12.7",
     "pg": "^7.4.3",
     "puppeteer": "^1.12.1",
-    "require-dir": "^1.0.0",
+    "require-directory": "^2.1.1",
     "sequelize": "^4.38.0",
     "sequelize-cli": "^4.1.1",
     "socket.io": "^2.2.0",

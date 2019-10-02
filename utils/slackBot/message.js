@@ -1,38 +1,35 @@
 /* eslint-disable default-case */
-const { rtm } = require('../slackBot/index');
+const { rtm, SlackMessageGenerator } = require('./index');
 const config = require('../../config');
-const { getUserName } = require('../utils/');
-const { paramsNames } = require('../utils/constants');
-const SlackMessageGenerator = require('../utils/SlackMessageGenerator');
 
-// The RTM client can send simple string messages
-const sendMessage = async (request) => {
-  let typeRequest;
+const notifyAboutNewRequestOrExtra = async (request) => {
+  let typeRequest = 'отправил ';
   let nameUser;
-  let link = 'https://staff.fusion-team.com/requestsList';
+  let link = `${config.siteAddress}/requestsList`;
+
   // eslint-disable-next-line default-case
   switch (request.type) {
     case 'technical':
-      typeRequest = `техническую заявку: ${request.title}`;
+      typeRequest += `техническую заявку: ${request.title}`;
       break;
     case 'common':
-      typeRequest = `бытовую заявку: ${request.title}`;
+      typeRequest += `бытовую заявку: ${request.title}`;
       break;
     case 'documents':
-      typeRequest = `заявку на документы: ${request.title}`;
+      typeRequest += `заявку на документы: ${request.title}`;
       break;
     case 'dayOff':
-      typeRequest = 'заявку на отгул';
+      typeRequest += 'заявку на отгул';
       break;
     case 'vacation':
-      typeRequest = 'заявку на отпуск';
+      typeRequest += 'заявку на отпуск';
       break;
     case 'medical':
-      typeRequest = 'заявку на больничный';
+      typeRequest += 'заявку на больничный';
       break;
     case 'extraHours':
       typeRequest = `добавил запись о переработке: \n"${request.description}"`;
-      link = 'https://staff.fusion-team.com/extra';
+      link = `${config.siteAddress}/extra`;
   }
   const { firstName, lastName, login } = request.users[0].dataValues;
 
@@ -42,13 +39,17 @@ const sendMessage = async (request) => {
     nameUser = `${firstName} ${lastName}`;
   }
 
-  const textMessage = `Пользователь ${nameUser} отправил ${typeRequest}. \n${link}`;
+  const textMessage = `Пользователь ${nameUser} ${typeRequest}. \n${link}`;
 
   try {
-    const res = await rtm.sendMessage(textMessage, config.conversationId);
+    const data = {
+      channel: config.conversationId,
+      text: textMessage
+    };
+    const res = await rtm.sendToChat(data);
     console.log('Message sent: ', res.ts);
   } catch (err) {
-    console.error(err);
+    console.error('', err);
   }
 };
 
@@ -58,16 +59,14 @@ const sendAdInGeneral = async (inputData = {}) => {
       title = '', image = '', user = {}, visitDate = '', id = ''
     } = inputData;
     const data = {
-      type: 'message',
       channel: config.generalId,
       text: `<!everyone>\n${SlackMessageGenerator.newAnnouncement}`,
-
       attachments: [
         {
           fields: [
             {
               title: 'Событие',
-              value: `<${config.siteAddress}/home?${paramsNames.announcementsId}=${id}|${title}>`,
+              value: `<${config.siteAddress}/home?$announcements-id=${id}|${title}>`,
               short: true
             },
             {
@@ -76,7 +75,7 @@ const sendAdInGeneral = async (inputData = {}) => {
               short: true
             }
           ],
-          author_name: `Автор: ${getUserName(user)}`,
+          author_name: `Автор: ${user.username}`,
           author_icon: user.avatarThumbnail || `${config.url}${user.avatar}`,
           image_url: `${config.url}${image}`
         }
@@ -124,7 +123,12 @@ const notifyUserAboutHisRequest = async (request) => {
   try {
     const userSlackConversationalId = request.users[0].dataValues.slack_conversational_id;
     if (userSlackConversationalId != null) {
-      const res = await rtm.sendMessage(textMessage, userSlackConversationalId);
+      const data = {
+        channel: userSlackConversationalId,
+        text: textMessage
+      };
+
+      const res = await rtm.sendToChat(data);
       console.log('Message sent: ', res);
     } else {
       console.error("We don't have the user's slack_id. Notification wasn't sent.");
@@ -165,8 +169,12 @@ const notifyAdminAboutExpiredRequest = async (request) => {
   if (request.comment) {
     message += `Комментарий: ${request.comment}. `;
   }
+  const data = {
+    channel: config.conversationId,
+    text: message
+  };
 
-  await rtm.sendMessage(message, config.conversationId);
+  await rtm.sendToChat(data);
 };
 
 const notifyAdminAboutBirthday = async (user) => {
@@ -215,7 +223,13 @@ const notifyAdminAboutBirthday = async (user) => {
   }
 
   const message = `Напоминание. У ${user.firstName} ${user.lastName} день рождения ${day} ${month}. А это уже скоро :) `;
-  await rtm.sendMessage(message, config.conversationId);
+
+  const data = {
+    channel: config.conversationId,
+    text: message
+  };
+
+  await rtm.sendToChat(data);
 };
 
 const notifyTeamAboutUnreviewedPRs = async (listOfPR) => {
@@ -224,14 +238,20 @@ const notifyTeamAboutUnreviewedPRs = async (listOfPR) => {
       (text, el) => `${text}\n${el}`,
       '<!channel> The following PRs have no been reviewed:'
     );
-    await rtm.sendMessage(textMessage, config.codeReviewTeamChannelId);
+
+    const data = {
+      channel: config.codeReviewTeamChannelId,
+      text: textMessage
+    };
+
+    await rtm.sendToChat(data);
   } catch (error) {
     console.error('RTM error', error);
   }
 };
 
 module.exports = {
-  sendMessage,
+  notifyAboutNewRequestOrExtra,
   notifyUserAboutHisRequest,
   notifyAdminAboutExpiredRequest,
   notifyAdminAboutBirthday,

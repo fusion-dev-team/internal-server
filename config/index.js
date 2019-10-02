@@ -5,7 +5,7 @@ let localConfig;
 try {
   // eslint-disable-next-line global-require
   localConfig = require('./config.json');
-  console.log(`>>> \u001b[32m${'Config loaded from config.json'}\u001b[39m`);
+  console.log(`>>> \u001b[32mConfig loaded from config.json for '${env}' environment\u001b[39m`);
 } catch (err) {
   console.error(`>>> \u001b[32m${'Local config not found'}\u001b[39m`, err);
 }
