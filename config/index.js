@@ -12,12 +12,14 @@ try {
 
 let config = {
   development: {
-    username: 'alexey',
-    password: 'alexey',
-    database: 'fusion_site',
-    host: '127.0.0.1',
-    dialect: 'postgres',
-    logging: false,
+    db: {
+      username: 'alexey',
+      password: 'alexey',
+      database: 'fusion_site',
+      host: '127.0.0.1',
+      dialect: 'postgres',
+      logging: false
+    },
     slack: {
       conversationId: '',
       slackToken: '',
