@@ -68,12 +68,11 @@ const consoleFormats = printf((info) => {
   }
   if (info.level === '[33mwarn[39m') {
     return `>>> \u001b[33m${info.message.text}\u001b[39m
-    route: ${info.message.routeName}
-    filename: ${info.message.filename}`;
+    route: ${info.message.routeName}`;
+    // filename: ${info.message.filename}
   }
   return `>>> \u001b[31m${info.message.text}\u001b[39m
     route: ${info.message.routeName}
-    filename: ${info.message.filename}
     (${moment().format('YYYY-MM-DD HH:mm:ss')})`;
 });
 

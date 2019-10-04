@@ -23,7 +23,7 @@ module.exports = {
     },
     ...options
   }),
-  findOrCreate: db.user.findOrCreate,
+  findOrCreate: params => db.user.findOrCreate(params),
   findOneUser: (query = {}) => db.user.findOne({
     include: [
       // {

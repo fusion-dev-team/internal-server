@@ -161,10 +161,10 @@ const singIn = async (req, res, next) => {
       }
     });
     if (!user) {
-      throw { status: 404, message: 'User not found' };
+      throw { status: 403, message: 'User login wrong' };
     }
     if (!utils.hash.compare(req.body.password, user.password)) {
-      throw { status: 401, message: 'Password is wrong' };
+      throw { status: 403, message: 'Password is wrong' };
     }
     const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
     return res.json(responsePayload);
@@ -202,7 +202,6 @@ const singIn = async (req, res, next) => {
 const singUp = async (req, res, next) => {
   try {
     const userPayload = req.body;
-    userPayload.password = utils.hash.generate(userPayload.password);
 
     // eslint-disable-next-line prefer-const
     let [user, created] = await userService.findOrCreate({
@@ -216,7 +215,7 @@ const singUp = async (req, res, next) => {
           }
         ]
       },
-      default: userPayload
+      defaults: userPayload
     });
     if (!created) {
       throw { message: 'User with same credentials already exists', status: 400 };
