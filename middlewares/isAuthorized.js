@@ -9,7 +9,13 @@ module.exports = async (req, res, next) => {
     }
 
     if (!req.headers.authorization) {
-      return res.status(401).json({ message: 'Authorization header is empty!' });
+      return res.status(401).json({
+        errors: [
+          {
+            msg: 'Authorization header is empty!'
+          }
+        ]
+      });
     }
 
     const token = req.headers.authorization.split('Bearer ')[1];
@@ -17,14 +23,32 @@ module.exports = async (req, res, next) => {
 
     const user = await db.user.findOne({ where: { id: decoded.id } });
     if (!user) {
-      return res.status(401).json({ message: 'Token is broken' });
+      return res.status(401).json({
+        errors: [
+          {
+            msg: 'Token is broken'
+          }
+        ]
+      });
     }
     if (user.status !== 'active') {
-      return res.status(403).json({ message: 'You have no permission to see this' });
+      return res.status(403).json({
+        errors: [
+          {
+            msg: 'You have no permission to get this'
+          }
+        ]
+      });
     }
     req.user = user.toJSON();
     next();
   } catch (err) {
-    return res.status(401).json({ message: err.message });
+    return res.status(401).json({
+      errors: [
+        {
+          msg: err.message
+        }
+      ]
+    });
   }
 };

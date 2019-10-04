@@ -22,9 +22,15 @@ exports.commonErrorHandler = (err, req, res) => {
   } else {
     logger.warn({ text: `Sign-up error: ${err.message}`, routeName: req.originalUrl });
   }
-
-  return res.status(errorStatus).json({
-    message: err.message,
-    errors: err.errors
-  });
+  const response = {};
+  if (err.errors) {
+    response.errors = err.errors;
+  } else {
+    response.errors = [
+      {
+        msg: err.message
+      }
+    ];
+  }
+  return res.status(errorStatus).json(response);
 };
