@@ -1,4 +1,6 @@
 /* eslint-disable */
+const utils = require('../../utils');
+
 module.exports = (sequelize, Sequelize) => {
   const User = sequelize.define(
     'user',
@@ -103,6 +105,17 @@ module.exports = (sequelize, Sequelize) => {
       }
     }
   );
+
+  User.beforeUpdate((instance, options) => {
+    return instance;
+  });
+
+  User.beforeCreate(user => {
+    if (user.isNewRecord && user.password) {
+      user.password = utils.hash.generate(user.password);
+    }
+    return user;
+  });
 
   User.associate = models => {
     // models.user.belongsToMany(models.project, {
