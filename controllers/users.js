@@ -128,7 +128,7 @@ const { Op } = Sequelize;
  *           items:
  *             type: "string"
  *           description: sorting parameters
- *           example: "["id", "ASC"]"
+ *           example: ["id", "ASC"]
  *     tags:
  *       - users
  *     responses:
