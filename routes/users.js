@@ -11,10 +11,7 @@ module.exports = (router) => {
   router.use(isAuthorized);
 
   router.get('/', validators('users.getAll'), controller.getUsers);
-  // router.get('/:login', controller.getUser);
   router.get('/:id', controller.getUser);
   router.put('/:id', isActiveUser, isAdminOrOwner, validators('users.update'), controller.editUser);
   router.put('/:id/avatar', isAdminOrOwner, upload.single('avatar'), controller.updateAvatar);
-  //   // router.put('/adminChange/:id', isAdmin, controller.adminChange);
-  //   router.delete('/:id', isAdmin, controller.deleteUser);
 };
