@@ -45,7 +45,7 @@
     "file-system": "^2.2.2",
     "fs": "0.0.1-security",
     "gm": "^1.23.1",
-    "handlebars": "^4.3.0",
+    "handlebars": "^4.5.3",
     "husky": "^3.0.0",
     "jsonwebtoken": "^8.2.2",
     "lodash": "^4.17.15",
