@@ -55,6 +55,7 @@
     "lodash.groupby": "^4.6.0",
     "lodash.indexof": "^4.0.5",
     "lodash.isequal": "^4.5.0",
+    "lodash.omit": "^4.5.0",
     "lodash.sortby": "^4.7.0",
     "lodash.union": "^4.6.0",
     "md5": "^2.2.1",

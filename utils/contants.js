@@ -21,7 +21,6 @@ module.exports = {
     'updatedAt',
     'resetPasswordToken',
     'resetPasswordExpires',
-    'slack_conversational_id',
-    'slack_conversational_crm_id'
+    'slackConversationalId'
   ]
 };

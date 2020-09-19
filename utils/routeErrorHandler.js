@@ -17,10 +17,16 @@ exports.commonErrorHandler = (err, req, res) => {
       type: error.type
     }));
   }
+  const errorBody = {
+    text: `Sign-up error: ${err.message}`,
+    routeName: req.originalUrl,
+    payload: err.payload,
+    user: req.user ? req.user.id : null
+  };
   if (errorStatus >= 500) {
-    logger.error({ text: `Sign-up error: ${err.message}`, routeName: req.originalUrl });
+    logger.error(errorBody);
   } else {
-    logger.warn({ text: `Sign-up error: ${err.message}`, routeName: req.originalUrl });
+    logger.warn(errorBody);
   }
   const response = {};
   if (err.errors) {

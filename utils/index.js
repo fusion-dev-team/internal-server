@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const _pick = require('lodash/pick');
 const config = require('../config');
 
 /**
@@ -52,16 +51,14 @@ exports.transporter = nodemailer.createTransport({
  * create new token for user
  * @param user - user model instance
  */
-exports.createTokensPair = (user, fields = ['id', 'role', 'username']) => {
-  const data = _pick(user, fields);
+exports.createTokensPairResponse = (userId) => {
   const result = {
-    accessToken: jwt.sign(data, config.common.jwtSecret, {
+    accessToken: jwt.sign({ userId }, config.common.jwtSecret, {
       expiresIn: config.common.accessTokenExpiresIn
     }),
-    refreshToken: jwt.sign(data, config.common.jwtSecret, {
+    refreshToken: jwt.sign({ userId }, config.common.jwtSecret, {
       expiresIn: config.common.refreshTokenExpiresIn
-    }),
-    user: data
+    })
   };
   return result;
 };

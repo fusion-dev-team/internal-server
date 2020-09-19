@@ -1,10 +1,15 @@
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
+const _omit = require('lodash.omit');
+const { Op } = require('sequelize');
 const config = require('../config');
 const { transporter } = require('../utils');
-const { USER_FIELDS_TOKEN } = require('../utils/contants');
+const { USER_FIELDS_QUERY_EXCLUDES } = require('../utils/contants');
 const userService = require('../db/services/users');
+const tokenService = require('../db/services/tokens');
 const utils = require('../utils');
+const logger = require('../utils/logger');
 
 /**
  * @swagger
@@ -46,7 +51,7 @@ const passwordRestore = async (req, res, next) => {
       resetPasswordExpires: moment().add(10, 'minutes')
     });
 
-    const link = `${config.siteAddress}/reset/${token}`;
+    const link = `${config.common.siteAddress}/auth/reset-password?token=${token}`;
 
     const mailOptions = {
       from: config.serviceEmail,
@@ -57,12 +62,17 @@ const passwordRestore = async (req, res, next) => {
 
     transporter.sendMail(mailOptions, (err, info) => {
       if (err) {
-        return res.status(404).send(err.message);
+        logger.error({ text: `Sign-up error: ${err.message}`, routeName: req.originalUrl, payload: req.body });
+        return res.status(500).json({
+          errors: [{
+            msg: `Could not send confirmation email to user: ${err.message}`
+          }]
+        });
       }
-      return res.status(200).send(info);
+      return res.status(200).json({ message: info });
     });
-    return null;
   } catch (err) {
+    err.payload = req.body;
     return next(err);
   }
 };
@@ -70,24 +80,19 @@ const passwordRestore = async (req, res, next) => {
 /**
  * @swagger
  *
- * /api/auth/reset/{token}:
+ * /api/auth/reset/:
  *   post:
  *     summary: reset password
- *     parameters:
- *       - in: path
- *         name: token
- *         schema:
- *           type: string
- *         description: token generated onRestore
- *       - name: reset pass object
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               newPass:
- *                type: string
+ *               password:
+ *                 type: string
+ *               token:
+ *                 type: string
  *     tags:
  *       - auth
  *     responses:
@@ -98,14 +103,14 @@ const passwordRestore = async (req, res, next) => {
  *       404:
  *         description: err message. Probably no such user
  */
-const passwordReset = async (req, res) => {
-  const { token } = req.params;
-  // const { newPass } = req.body;
+const passwordReset = async (req, res, next) => {
+  const { token, password } = req.body;
   if (!token) {
-    return res
-      .status(400)
-      .message('Token is missing!')
-      .send();
+    return res.status(400).json({
+      errors: [{
+        msg: 'Token is missing!'
+      }]
+    });
   }
   try {
     const user = await userService.findOneUser({
@@ -117,15 +122,44 @@ const passwordReset = async (req, res) => {
       }
     });
     if (!user) {
-      return res.status(404).send('Invalid Token!');
+      return res.status(404).json({
+        errors: [{
+          msg: 'Invalid Token!'
+        }]
+      });
     }
-    user.update({
-      resetPasswordToken: null
-      // password: hash(newPass)
+    await user.update({
+      resetPasswordToken: null,
+      password: utils.hash.generate(password)
     });
-    return res.status(200).send('Password changed successfully!');
+    return res.status(200).json({ message: 'Password changed successfully!' });
   } catch (err) {
-    return res.status(404).send(err);
+    err.payload = { token, password };
+    next(err);
+  }
+};
+
+/**
+ * @swagger
+ *
+ * /api/auth/me:
+ *   post:
+ *     summary: Get user by token
+ *     tags:
+ *       - auth
+ *     responses:
+ *       200:
+ *         description: return user object
+ *       500:
+ *         description: errors
+ */
+const getUserByToken = (req, res, next) => {
+  try {
+    let { user } = req;
+    user = _omit(user, USER_FIELDS_QUERY_EXCLUDES);
+    res.json({ user });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -145,6 +179,8 @@ const passwordReset = async (req, res) => {
  *                 type: string
  *               password:
  *                 type: string
+ *               device:
+ *                 type: string
  *     tags:
  *       - auth
  *     responses:
@@ -155,20 +191,50 @@ const passwordReset = async (req, res) => {
  */
 const singIn = async (req, res, next) => {
   try {
-    const user = await userService.findOneUser({
+    let user = await userService.findOneUser({
       where: {
-        login: req.body.login
+        [Op.or]: [{
+          login: req.body.login
+        }, {
+          email: req.body.login
+        }]
       }
     });
     if (!user) {
-      throw { status: 403, message: 'User login wrong' };
+      throw { status: 404, message: 'User not found' };
     }
     if (!utils.hash.compare(req.body.password, user.password)) {
-      throw { status: 403, message: 'Password is wrong' };
+      throw { status: 401, message: 'Password is wrong' };
     }
-    const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
-    return res.json(responsePayload);
+
+    user = user.toJSON();
+    user = _omit(user, USER_FIELDS_QUERY_EXCLUDES);
+
+    const { accessToken, refreshToken } = utils.createTokensPairResponse(user.id);
+    const [result, created] = await tokenService.findByDeviceOrCreate({
+      where: {
+        device: req.body.device
+      },
+      defaults: {
+        device: req.body.device,
+        access: accessToken,
+        refresh: refreshToken,
+        userId: user.id
+      }
+    });
+
+    if (!created) {
+      result.access = accessToken;
+      result.refresh = refreshToken;
+      await result.save();
+    }
+
+    return res.status(200)
+      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInSec })
+      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
+      .json({ user });
   } catch (err) {
+    err.payload = req.body;
     next(err);
   }
 };
@@ -193,6 +259,8 @@ const singIn = async (req, res, next) => {
  *                type: string
  *               password:
  *                type: string
+ *               device:
+ *                type: string
  *     tags:
  *       - auth
  *     responses:
@@ -206,7 +274,7 @@ const singUp = async (req, res, next) => {
     // eslint-disable-next-line prefer-const
     let [user, created] = await userService.findOrCreate({
       where: {
-        $or: [
+        [Op.or]: [
           {
             login: userPayload.login
           },
@@ -221,10 +289,32 @@ const singUp = async (req, res, next) => {
       throw { message: 'User with same credentials already exists', status: 400 };
     }
     user = user.toJSON();
+    user = _omit(user, USER_FIELDS_QUERY_EXCLUDES);
 
-    const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
-    return res.status(201).json(responsePayload);
+    const { accessToken, refreshToken } = utils.createTokensPairResponse(user.id);
+    const [result, recordCreated] = await tokenService.findByDeviceOrCreate({
+      where: {
+        device: req.body.device
+      },
+      defaults: {
+        device: req.body.device,
+        access: accessToken,
+        refresh: refreshToken,
+        userId: user.id
+      }
+    });
+
+    if (!recordCreated) {
+      result.access = accessToken;
+      result.refresh = refreshToken;
+      await result.save();
+    }
+    return res.status(201)
+      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInSec })
+      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
+      .json({ user });
   } catch (err) {
+    err.payload = req.body;
     return next(err);
   }
 };
@@ -255,18 +345,43 @@ const singUp = async (req, res, next) => {
  */
 const tokenRefresh = async (req, res, next) => {
   try {
-    const { refreshToken } = req.body;
-    const decoded = jwt.verify(refreshToken, config.common.jwtSecret);
-    const user = await userService.findOneUser({ where: { id: decoded.id } });
-    const responsePayload = utils.createTokensPair(user, USER_FIELDS_TOKEN);
-    return res.json(responsePayload);
+    const { refreshToken: refresh } = req.cookies;
+    const { device } = req.body;
+
+    const userTokens = await tokenService.findOne({
+      where: {
+        device,
+        refresh
+      }
+    });
+
+    if (!userTokens) {
+      return res.status(404).json({
+        errors: [{
+          msg: 'There is no such session'
+        }]
+      });
+    }
+
+    jwt.verify(refresh, config.common.jwtSecret);
+
+    const { accessToken, refreshToken } = utils.createTokensPairResponse(userTokens.userId);
+    userTokens.access = accessToken;
+    userTokens.refresh = refreshToken;
+    await userTokens.save();
+
+    return res.status(200)
+      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInSec })
+      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
+      .json({ message: 'Tokens updated' });
   } catch (error) {
+    error.payload = req.body;
     return next(error);
   }
 };
 
 module.exports = {
-  // authorize,
+  getUserByToken,
   singIn,
   singUp,
   tokenRefresh,

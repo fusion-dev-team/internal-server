@@ -24,7 +24,8 @@ class Logger {
     const { stack } = Error('Error');
     const errorString = stack.split('\n')[3];
     /* eslint-disable  no-useless-escape */
-    return errorString.match(/(?<=\()(.*?)(?=\:)/)[0];
+    const result = errorString.match(/(?<=\()(.*?)(?=\:)/);
+    return result ? result[0] : errorString;
   }
 
   /**

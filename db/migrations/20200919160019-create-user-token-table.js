@@ -1,14 +1,13 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('errors', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('userTokens', {
     id: {
       autoIncrement: true,
       primaryKey: true,
       type: Sequelize.INTEGER
     },
-    filename: Sequelize.STRING,
-    text: Sequelize.TEXT,
-    routeName: Sequelize.STRING,
-    payload: Sequelize.JSONB,
+    refresh: Sequelize.STRING,
+    access: Sequelize.STRING,
+    device: Sequelize.STRING,
     userId: {
       type: Sequelize.INTEGER,
       references: {
@@ -30,5 +29,5 @@ module.exports = {
     }
   }),
 
-  down: queryInterface => queryInterface.dropTable('errors')
+  down: queryInterface => queryInterface.dropTable('userTokens')
 };
