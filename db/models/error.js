@@ -3,7 +3,7 @@ module.exports = (sequelize, Sequelize) => {
     'error',
     {
       filename: Sequelize.STRING,
-      error: Sequelize.TEXT,
+      text: Sequelize.TEXT,
       routeName: Sequelize.STRING,
       payload: Sequelize.JSONB
     },
