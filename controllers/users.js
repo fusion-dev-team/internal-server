@@ -13,6 +13,7 @@ const {
 
 const { Op } = Sequelize;
 
+// swager pizdit !!!
 /**
  * @swagger
  * definitions:
@@ -148,7 +149,7 @@ const getUsers = async (req, res, next) => {
     });
     return res.json({ users });
   } catch (err) {
-    next({ ...err, filename: __dirname });
+    next({ text: err.message, filename: __dirname, payload: req.query });
   }
 };
 
@@ -235,7 +236,7 @@ const editUser = async (req, res, next) => {
 
     await userService.updateUser(payload, {
       where: {
-        [Op.or]: [{ login: req.params.login }, { id: req.params.id }]
+        [Op.or]: [{ login: req.params.id }, { id: req.params.id }]
       },
       individualHooks: true
     });
@@ -244,6 +245,7 @@ const editUser = async (req, res, next) => {
       message: 'User updated'
     });
   } catch (error) {
+    error.payload = req.body;
     next(error);
   }
 };
@@ -331,11 +333,15 @@ const updateAvatar = (req, res, next) => {
               );
 
               return res.json({
-                message: 'avatar was updated',
+                message: 'Avatar was updated',
                 avatar: `/${avatarPath}`,
                 avatarThumbnail: `/${avatarPath}_thumbnail`
               });
             } catch (updateError) {
+              updateError.payload = {
+                file: req.file,
+                avatarPath
+              };
               next(updateError);
             }
           });
