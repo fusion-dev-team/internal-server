@@ -236,8 +236,8 @@ const singIn = async (req, res, next) => {
     }
 
     return res.status(200)
-      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInSec })
-      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
+      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInMS })
+      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInMS })
       .json({ user });
   } catch (err) {
     err.payload = {
@@ -327,8 +327,8 @@ const singUp = async (req, res, next) => {
       await result.save();
     }
     return res.status(201)
-      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInSec })
-      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
+      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInMS })
+      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInMS })
       .json({ user });
   } catch (err) {
     err.payload = {
@@ -398,8 +398,8 @@ const tokenRefresh = async (req, res, next) => {
     await userTokens.save();
 
     return res.status(200)
-      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInSec })
-      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
+      .cookie('accessToken', accessToken, { maxAge: config.common.accessTokenExpiresInMS })
+      .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInMS })
       .json({ message: 'Tokens updated' });
   } catch (error) {
     error.payload = {

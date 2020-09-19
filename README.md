@@ -30,8 +30,8 @@ In `config` folder create `config.json` file with next structure:
     },
     "common": {
       "jwtSecret": "secret",
-      "accessTokenExpiresInSec": 172800,
-      "refreshTokenExpiresInSec": 604800,
+      "accessTokenExpiresInMS": 172800000,
+      "refreshTokenExpiresInMS": 60480000,
       "accessTokenExpiresIn": "2days",
       "refreshTokenExpiresIn": "7days",
       "url": "http://localhost:6800",
@@ -50,7 +50,8 @@ In `config` folder create `config.json` file with next structure:
       "linkpreviewApiKey": "apiKey",
       "vapidPrivateKey": "somePrivateKey",
       "vapidPublicKey": "somePublicKey",
-      "vapidMail": "email@your.com"
+      "vapidMail": "email@your.com",
+      "calendarSiteUrl": "https://buh.ru/calendar/"
     }
   },
 }
@@ -91,8 +92,8 @@ On `http://localhost:6800/api-docs/` you can try swagger
 | slackMessages.newAnnouncement | array of greeting for announcement messages             |
 | common                        |                                                         |
 | jwtSecret                     | jwt secret key                                          |
-| accessTokenExpiresInSec       | token expiration time (in seconds)                      |
-| refreshTokenExpiresInSec      | refresh expiration time (in seconds)                    |
+| accessTokenExpiresInMS       | token expiration time (in seconds)                      |
+| refreshTokenExpiresInMS      | refresh expiration time (in seconds)                    |
 | accessTokenExpiresIn          | token expiration time (in days)                         |
 | refreshTokenExpiresIn         | refresh expiration time (in days)                       |
 | url                           | server url                                              |

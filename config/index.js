@@ -35,8 +35,8 @@ let config = {
     },
     common: {
       jwtSecret: 'secret',
-      accessTokenExpiresInSec: 172800,
-      refreshTokenExpiresInSec: 604800,
+      accessTokenExpiresInMS: 172800000,
+      refreshTokenExpiresInMS: 604800000,
       accessTokenExpiresIn: '2days',
       refreshTokenExpiresIn: '7days',
       url: 'http://localhost:6800',
