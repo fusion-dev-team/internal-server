@@ -31,6 +31,8 @@ const postRequest = async (req, res, next) => {
       case 'technical':
       case 'common':
       case 'documents':
+        payload.restDaysNumber = 0;
+        break;
       case 'dayOff':
         payload.restDaysNumber = 1;
         break;
