@@ -12,7 +12,7 @@ module.exports = async (req, res, next) => {
       return res.status(401).json({
         errors: [
           {
-            msg: 'Authorization header is empty!'
+            msg: 'Authorization token is missing!'
           }
         ]
       });

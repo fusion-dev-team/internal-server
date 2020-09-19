@@ -1,6 +1,7 @@
 const moment = require('moment');
 const { countRestDays } = require('../utils/calendar/utils');
 const requestService = require('../db/services/requests');
+const { createRequestDateRangesFilter } = require('../filters/requests');
 
 const postRequest = async (req, res, next) => {
   try {
@@ -10,6 +11,16 @@ const postRequest = async (req, res, next) => {
     if (payload.from) {
       // eslint-disable-next-line prefer-destructuring
       id = payload.from.id;
+    }
+
+    if (['medical', 'vacation', 'timeOff', 'dayOff'].includes(payload.type)) {
+      if (!payload.dateTo) {
+        throw { status: 400, message: 'Missing "dateTo" field' };
+      }
+
+      if (moment(payload.dateFrom).isAfter(moment(payload.dateTo))) {
+        throw { status: 400, message: 'Incorrect date fields' };
+      }
     }
 
     payload.authorId = req.user.id;
@@ -63,6 +74,26 @@ const postRequest = async (req, res, next) => {
   }
 };
 
+const getRequestsForUser = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const { from, to } = req.query;
+    delete req.query.from;
+    delete req.query.to;
+
+    const where = { ...req.query, ...createRequestDateRangesFilter(from, to) };
+
+    const request = await requestService.findAllForUser(userId, {
+      where,
+      order: [['id', 'DESC']]
+    });
+    return res.json(request);
+  } catch (err) {
+    err.payload = { query: req.query };
+    next(err);
+  }
+};
+
 const putRequest = async (req, res, next) => {
   try {
     res.send();
@@ -73,19 +104,23 @@ const putRequest = async (req, res, next) => {
 
 const getRequests = async (req, res, next) => {
   try {
-    res.send();
-  } catch (error) {
-    next(error);
+    const { from, to } = req.query;
+    delete req.query.from;
+    delete req.query.to;
+
+    const where = { ...req.query, ...createRequestDateRangesFilter(from, to) };
+
+    const request = await requestService.findAll({
+      where,
+      order: [['id', 'DESC']]
+    });
+    return res.json(request);
+  } catch (err) {
+    err.payload = { query: req.query };
+    next(err);
   }
 };
 
-const getRequestsForUser = async (req, res, next) => {
-  try {
-    res.send();
-  } catch (error) {
-    next(error);
-  }
-};
 
 const deleteRequest = async (req, res, next) => {
   try {

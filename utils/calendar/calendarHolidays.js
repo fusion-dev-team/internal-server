@@ -6,6 +6,8 @@ const config = require('../../config');
 
 /**
  * Create calendar file in file system
+ * file will contain days list where each day will be marked as working or holiday
+ * depends on official calenday of holidays
  */
 class Calendar {
   constructor(years, filePath = 'calendar.json') {

@@ -10,6 +10,6 @@ module.exports = (router) => {
   router.post('/', validators('requests.create'), controller.postRequest);
   // router.put('/', controller.putRequest);
   // router.get('/', isSalesOrManager, controller.getRequests);
-  // router.get('/:id', controller.getRequestsForUser);
+  router.get('/user/:id', validators('requests.getAll'), controller.getRequestsForUser);
   // router.delete('/:id', isAdmin, controller.deleteRequest);
 };

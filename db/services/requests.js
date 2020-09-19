@@ -4,7 +4,29 @@ module.exports = {
   create: payload => db.request.create(payload),
   findAll: (options = {}) => db.request.findAll({
     include: [{
-      model: db.user
+      model: db.user,
+      as: 'createdBy',
+      attributes: ['id', 'firstNameRu', 'lastNameRu']
+    }, {
+      model: db.user,
+      as: 'updatedBy',
+      attributes: ['id', 'firstNameRu', 'lastNameRu']
+    }],
+    attributes: {
+      exclude: ['createdAt', 'updatedAt']
+    },
+    ...options
+  }),
+  findAllForUser: (userId, options = {}) => db.request.findAll({
+    include: [{
+      model: db.user,
+      where: { id: userId },
+      as: 'createdBy',
+      attributes: ['id', 'firstNameRu', 'lastNameRu']
+    }, {
+      model: db.user,
+      as: 'updatedBy',
+      attributes: ['id', 'firstNameRu', 'lastNameRu']
     }],
     attributes: {
       exclude: ['createdAt', 'updatedAt']

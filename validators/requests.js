@@ -9,13 +9,7 @@ module.exports = {
     check('comment', 'Missing comment').exists()
   ],
   getAll: [
-    check('login', 'Login is missing').exists(),
-    check('email', 'Email is missing').exists(),
-    check('email', 'Email has wrong format').isEmail(),
-    check('password', 'Password is missing').exists()
-  ],
-  getOne: [
-    check('email', 'Email is missing').exists(),
-    check('email', 'Email has wrong format').isEmail()
+    check('to', 'Wrong date "to" field').optional().isISO8601(),
+    check('from', 'Wrong date "from" field').optional().isISO8601()
   ]
 };
