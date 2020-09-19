@@ -31,7 +31,7 @@ module.exports = async (req, res, next) => {
         ]
       });
     }
-    if (user.status !== 'active') {
+    if (user.status === 'disabled') {
       return res.status(403).json({
         errors: [
           {
