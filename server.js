@@ -4,6 +4,7 @@ const logger = require('./utils/logger');
 const config = require('./config');
 const app = require('./app');
 const swaggerDocument = require('./swagger.json');
+const { calendarGenerator } = require('./utils/calendar/calendarGenerator');
 
 const { port } = config.common;
 const devMode = ['development', 'stage'];
@@ -24,6 +25,7 @@ const server = app.listen(port, (err) => {
     return logger.warning({ error: `something bad happened ${err}`, routeName: 'server init' });
   }
   logger.info({ text: `server is listening on ${port}`, routeName: 'server init' });
+  calendarGenerator.initCalendar();
   // cron-tasks
   // TODO: return back
   // notifyAdminInSlackAboutExpiredRequests();
