@@ -12,4 +12,5 @@ module.exports = (router) => {
   router.post('/password-reset', validators('auth.password-reset'), controller.passwordReset);
   router.get('/me', isAuthorized, controller.getUserByToken);
   router.post('/token-refresh', validators('auth.refreshToken'), controller.tokenRefresh);
+  router.post('/logout', controller.logout);
 };

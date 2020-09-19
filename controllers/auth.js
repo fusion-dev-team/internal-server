@@ -410,11 +410,23 @@ const tokenRefresh = async (req, res, next) => {
   }
 };
 
+const logout = (req, res, next) => {
+  try {
+    res
+      .clearCookie('accessToken')
+      .clearCookie('refreshToken')
+      .json({ message: 'You was logged out' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getUserByToken,
   singIn,
   singUp,
   tokenRefresh,
   passwordRestore,
-  passwordReset
+  passwordReset,
+  logout
 };
