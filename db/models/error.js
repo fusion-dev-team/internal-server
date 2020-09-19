@@ -1,11 +1,12 @@
-module.exports = (sequelize, DataTypes) => sequelize.define(
+module.exports = (sequelize, Sequelize) => sequelize.define(
   'error',
   {
-    filename: DataTypes.STRING,
-    error: DataTypes.TEXT,
-    routeName: DataTypes.STRING,
+    filename: Sequelize.STRING,
+    error: Sequelize.TEXT,
+    routeName: Sequelize.STRING,
+    payload: Sequelize.JSONB,
     user: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.INTEGER,
       references: {
         model: 'users',
         key: 'id'

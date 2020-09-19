@@ -10,95 +10,101 @@ module.exports = (sequelize, Sequelize) => {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-
-      firstName: {
+  
+      firstNameEn: {
         type: Sequelize.STRING,
         notEmpty: true
       },
-
-      lastName: {
+      firstNameRu: {
         type: Sequelize.STRING,
         notEmpty: true
       },
-
+  
+      lastNameEn: {
+        type: Sequelize.STRING,
+        notEmpty: true
+      },
+      lastNameRu: {
+        type: Sequelize.STRING,
+        notEmpty: true
+      },
+  
+      educationEn: {
+        type: Sequelize.TEXT
+      },
+      educationRu: {
+        type: Sequelize.TEXT
+      },
+  
       login: {
         type: Sequelize.TEXT,
         allowNull: false,
         notEmpty: true,
         unique: true
       },
-
-      info: {
-        type: Sequelize.TEXT
-      },
-
       phone: {
         type: Sequelize.STRING
       },
-
+      info: {
+        type: Sequelize.TEXT
+      },
       email: {
         type: Sequelize.STRING,
         validate: {
           isEmail: true
         }
       },
-
+      avatar: {
+        type: Sequelize.STRING
+      },
+      avatarThumbnail: {
+        type: Sequelize.STRING
+      },
       password: {
         type: Sequelize.STRING,
         allowNull: false
       },
-
-      role: {
-        type: Sequelize.ENUM('student', 'user', 'sales', 'admin'),
-        defaultValue: 'user'
+      repo: {
+        type: Sequelize.ARRAY(Sequelize.STRING)
       },
-
-      avatar: {
-        type: Sequelize.STRING
-      },
-
-      avatarThumbnail: {
-        type: Sequelize.STRING
-      },
-
+  
       status: {
         type: Sequelize.ENUM('registered', 'active', 'disabled'),
         defaultValue: 'registered'
       },
-
-      DoB: {
+      role: {
+        type: Sequelize.ENUM(
+          'admin',
+          'sales',
+          'manager',
+          'hr',
+          'teacher',
+          'user',
+          'student'
+        ),
+        defaultValue: 'user'
+      },
+      dob: {
         type: Sequelize.DATE
       },
-
-      slack_name: {
+      slackName: {
         type: Sequelize.STRING
       },
-
       resetPasswordToken: {
         type: Sequelize.TEXT
       },
-
       resetPasswordExpires: {
         type: Sequelize.DATE
       },
-
-      slack_conversational_id: {
+      slackConversationalId: {
         type: Sequelize.STRING
       },
-
-      slack_conversational_crm_id: {
-        type: Sequelize.STRING
-      },
-
-      repo: {
-        type: Sequelize.ARRAY(Sequelize.STRING)
-      }
     },
     {
       getterMethods: {
         username() {
-          if (this.firstName && this.lastName) {
-            return `${this.firstName} ${this.lastName}`;
+          if (this.firstName || this.lastName) {
+            return `${this.firstName || ''} ${this.lastName || ''}`;
           }
           return this.login;
         }
