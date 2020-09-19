@@ -12,6 +12,6 @@ module.exports = (app) => {
 
     require(`./${routeName}`)(router);
 
-    app.use(`/api/${changeCase.paramCase(routeName)}`, router);
+    app.use(`/api/v2/${changeCase.paramCase(routeName)}`, router);
   });
 };

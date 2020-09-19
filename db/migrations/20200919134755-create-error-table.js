@@ -1,12 +1,12 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('users', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('errors', {
     id: {
       autoIncrement: true,
       primaryKey: true,
       type: Sequelize.INTEGER
     },
     filename: Sequelize.STRING,
-    error: Sequelize.TEXT,
+    text: Sequelize.TEXT,
     routeName: Sequelize.STRING,
     payload: Sequelize.JSONB,
     user: {
@@ -14,7 +14,9 @@ module.exports = {
       references: {
         model: 'users',
         key: 'id'
-      }
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE'
     },
     createdAt: {
       allowNull: false,
@@ -28,5 +30,5 @@ module.exports = {
     }
   }),
 
-  down: queryInterface => queryInterface.dropTable('users')
+  down: queryInterface => queryInterface.dropTable('errors')
 };
