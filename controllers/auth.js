@@ -169,6 +169,13 @@ const getUserByToken = (req, res, next) => {
  * /api/auth/sign-in:
  *   post:
  *     summary: Sign in
+ *     parameters:
+ *      - in: header
+ *        name: device
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        required: true
  *     requestBody:
  *       content:
  *         application/json:
@@ -179,8 +186,6 @@ const getUserByToken = (req, res, next) => {
  *                 type: string
  *               password:
  *                 type: string
- *               device:
- *                 type: string
  *     tags:
  *       - auth
  *     responses:
@@ -190,6 +195,7 @@ const getUserByToken = (req, res, next) => {
  *         description: validation errors
  */
 const singIn = async (req, res, next) => {
+  const { device } = req.headers;
   try {
     let user = await userService.findOneUser({
       where: {
@@ -213,10 +219,10 @@ const singIn = async (req, res, next) => {
     const { accessToken, refreshToken } = utils.createTokensPairResponse(user.id);
     const [result, created] = await tokenService.findByDeviceOrCreate({
       where: {
-        device: req.body.device
+        device
       },
       defaults: {
-        device: req.body.device,
+        device,
         access: accessToken,
         refresh: refreshToken,
         userId: user.id
@@ -234,7 +240,10 @@ const singIn = async (req, res, next) => {
       .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
       .json({ user });
   } catch (err) {
-    err.payload = req.body;
+    err.payload = {
+      body: req.body,
+      headers: device
+    };
     next(err);
   }
 };
@@ -247,6 +256,13 @@ const singIn = async (req, res, next) => {
  *     summary: register
  *     produces:
  *       - application/json
+ *     parameters:
+ *      - in: header
+ *        name: device
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        required: true
  *     requestBody:
  *       content:
  *         application/json:
@@ -268,9 +284,10 @@ const singIn = async (req, res, next) => {
  *         description: password have been changed
  */
 const singUp = async (req, res, next) => {
-  try {
-    const userPayload = req.body;
+  const userPayload = req.body;
+  const { device } = req.headers;
 
+  try {
     // eslint-disable-next-line prefer-const
     let [user, created] = await userService.findOrCreate({
       where: {
@@ -294,10 +311,10 @@ const singUp = async (req, res, next) => {
     const { accessToken, refreshToken } = utils.createTokensPairResponse(user.id);
     const [result, recordCreated] = await tokenService.findByDeviceOrCreate({
       where: {
-        device: req.body.device
+        device
       },
       defaults: {
-        device: req.body.device,
+        device,
         access: accessToken,
         refresh: refreshToken,
         userId: user.id
@@ -314,7 +331,10 @@ const singUp = async (req, res, next) => {
       .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
       .json({ user });
   } catch (err) {
-    err.payload = req.body;
+    err.payload = {
+      body: req.body,
+      headers: device
+    };
     return next(err);
   }
 };
@@ -325,6 +345,13 @@ const singUp = async (req, res, next) => {
  * /api/auth/token-refresh:
  *   post:
  *     summary: Request token refresh
+ *     parameters:
+ *      - in: header
+ *        name: device
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        required: true
  *     requestBody:
  *       content:
  *         application/json:
@@ -344,10 +371,10 @@ const singUp = async (req, res, next) => {
  *         description: Error message, probably wrong request
  */
 const tokenRefresh = async (req, res, next) => {
-  try {
-    const { refreshToken: refresh } = req.cookies;
-    const { device } = req.body;
+  const { refreshToken: refresh } = req.cookies;
+  const { device } = req.headers;
 
+  try {
     const userTokens = await tokenService.findOne({
       where: {
         device,
@@ -375,7 +402,10 @@ const tokenRefresh = async (req, res, next) => {
       .cookie('refreshToken', refreshToken, { maxAge: config.common.refreshTokenExpiresInSec })
       .json({ message: 'Tokens updated' });
   } catch (error) {
-    error.payload = req.body;
+    error.payload = {
+      cookies: req.cookies,
+      headers: device
+    };
     return next(error);
   }
 };
