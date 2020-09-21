@@ -24,6 +24,7 @@ module.exports = {
     ...options
   }),
   findOrCreate: params => db.user.findOrCreate(params),
+  create: params => db.user.create(params),
   findOneUser: (query = {}) => db.user.findOne({
     include: [
       // {

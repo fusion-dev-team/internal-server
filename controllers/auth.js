@@ -288,25 +288,18 @@ const singUp = async (req, res, next) => {
   const { device } = req.headers;
 
   try {
-    // eslint-disable-next-line prefer-const
-    let [user, created] = await userService.findOrCreate({
-      where: {
-        [Op.or]: [
-          {
-            login: userPayload.login
-          },
-          {
-            email: userPayload.email
-          }
-        ]
-      },
-      defaults: userPayload
-    });
-    if (!created) {
-      throw { message: 'User with same credentials already exists', status: 400 };
+    const isEmailExist = await userService.findOneUser({ where: { email: userPayload.email } });
+    if (isEmailExist) {
+      throw { status: 400, message: 'This email is busy' };
     }
-    user = user.toJSON();
-    user = _omit(user, USER_FIELDS_QUERY_EXCLUDES);
+
+    const isLoginExist = await userService.findOneUser({ where: { login: userPayload.login } });
+    if (isLoginExist) {
+      throw { status: 400, message: 'This login is busy' };
+    }
+
+    let user = await userService.create(userPayload);
+    user = _omit(user.toJSON(), USER_FIELDS_QUERY_EXCLUDES);
 
     const { accessToken, refreshToken } = utils.createTokensPairResponse(user.id);
     const [result, recordCreated] = await tokenService.findByDeviceOrCreate({
