@@ -11,31 +11,14 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER
       },
   
-      firstNameEn: {
+      firstName: {
         type: Sequelize.STRING,
         notEmpty: true
       },
-      firstNameRu: {
+      lastName: {
         type: Sequelize.STRING,
         notEmpty: true
       },
-  
-      lastNameEn: {
-        type: Sequelize.STRING,
-        notEmpty: true
-      },
-      lastNameRu: {
-        type: Sequelize.STRING,
-        notEmpty: true
-      },
-  
-      educationEn: {
-        type: Sequelize.TEXT
-      },
-      educationRu: {
-        type: Sequelize.TEXT
-      },
-  
       login: {
         type: Sequelize.TEXT,
         allowNull: false,
@@ -63,11 +46,7 @@ module.exports = (sequelize, Sequelize) => {
       password: {
         type: Sequelize.STRING,
         allowNull: false
-      },
-      repo: {
-        type: Sequelize.ARRAY(Sequelize.STRING)
-      },
-  
+      },  
       status: {
         type: Sequelize.ENUM('registered', 'active', 'disabled'),
         defaultValue: 'registered'
@@ -75,10 +54,7 @@ module.exports = (sequelize, Sequelize) => {
       role: {
         type: Sequelize.ENUM(
           'admin',
-          'sales',
           'manager',
-          'hr',
-          'teacher',
           'user',
           'student'
         ),
@@ -87,17 +63,11 @@ module.exports = (sequelize, Sequelize) => {
       dob: {
         type: Sequelize.DATE
       },
-      slackName: {
-        type: Sequelize.STRING
-      },
       resetPasswordToken: {
         type: Sequelize.TEXT
       },
       resetPasswordExpires: {
         type: Sequelize.DATE
-      },
-      slackConversationalId: {
-        type: Sequelize.STRING
       },
     },
     {

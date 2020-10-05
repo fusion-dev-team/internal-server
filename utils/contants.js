@@ -7,9 +7,7 @@ module.exports = {
     'DoB',
     'avatar',
     'avatarThumbnail',
-    'phone',
-    'slack_name',
-    'repo'
+    'phone'
   ],
 
   USER_FIELDS_TOKEN: ['id', 'firstName', 'lastName', 'role', 'status'],
