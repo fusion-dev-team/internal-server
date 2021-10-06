@@ -13,11 +13,11 @@ module.exports = {
     check('password', 'Password is missing').exists(),
     header('device', 'Missing device hash').exists()
   ],
-  'password-restore': [
+  passwordRestore: [
     check('email', 'Email is missing').exists(),
     check('email', 'Email has wrong format').isEmail()
   ],
-  'password-reset': [
+  passwordReset: [
     check('token', 'Token is missing').exists(),
     check('password', 'Password is missing').exists()
   ],
