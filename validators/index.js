@@ -1,35 +1,23 @@
-/* eslint-disable global-require */
-/* eslint-disable import/no-dynamic-require */
-const _get = require('lodash/get');
-// const validatorObjects = require('require-dir')('./', { extensions: ['.js'] });
-const requireDirectory = require('require-directory');
-
-const validatorObjects = requireDirectory(module, './');
-const { validationResult } = require('express-validator');
-
-const validators = Object.keys(validatorObjects).reduce((acc, filename) => {
-  acc[filename] = validatorObjects[filename];
-  return acc;
-}, {});
-
+const { validationResult, matchedData } = require('express-validator');
 /**
- *
- * @param {string} type - path to validator. (e.g. 'users.getAll')
+ * validator[fileName][validatorName]
  */
-const chooseAndValidate = type => async (req, res, next) => {
-  try {
-    // return next();
-    await Promise.all(_get(validators, type).map(validation => validation.run(req)));
+const validator = require('require-directory')(module);
 
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-      return next();
-    }
-
-    return res.status(400).json({ errors: errors.array() });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (errors.isEmpty()) {
+    req.body = matchedData(req, { locations: ['body'] });
+    req.query = matchedData(req, { locations: ['query'] });
+    return next();
   }
+  return res.status(400).json({ errors: errors.array() });
 };
 
-module.exports = chooseAndValidate;
+Object.keys(validator).forEach((fileName) => {
+  Object.keys(validator[fileName]).forEach((key) => {
+    validator[fileName][key] = [...validator[fileName][key], validate];
+  });
+});
+
+module.exports = validator;
