@@ -47,7 +47,7 @@
     "gm": "^1.23.1",
     "handlebars": "^4.3.0",
     "husky": "^3.0.0",
-    "jsonwebtoken": "^8.2.2",
+    "jsonwebtoken": "^9.0.0",
     "lodash": "^4.17.15",
     "lodash.countby": "^4.6.0",
     "lodash.difference": "^4.5.0",
